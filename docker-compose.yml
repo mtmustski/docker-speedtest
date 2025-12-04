@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  speedtest:
+    build: .
+    ports:
+      - "8012:8012"
+    environment:
+      # Set to "true" to accept Ookla's EULA
+      # https://www.speedtest.net/about/eula
+      # https://www.speedtest.net/about/terms
+      # https://www.speedtest.net/about/privacy
+      - SPEEDTEST_ACCEPT_EULA=true
+    restart: unless-stopped

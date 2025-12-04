@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Test</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #fff;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #111;
+        }
+
+        .btn {
+            background: #111;
+            color: #fff;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #333;
+        }
+
+        .btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #eee;
+            border-top-color: #111;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            margin-top: 2rem;
+            text-align: left;
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #666;
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: #111;
+        }
+
+        .result-value.speed {
+            font-size: 1.25rem;
+        }
+
+        .error {
+            color: #c00;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fee;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .server-info {
+            font-size: 0.875rem;
+            color: #666;
+            margin-top: 1rem;
+        }
+
+        .result-link {
+            display: none;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .result-link a {
+            color: #111;
+            text-decoration: none;
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .result-link a:hover {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Speed Test</h1>
+
+        <button class="btn" id="runTest" onclick="runSpeedTest()">
+            Run Speed Test
+        </button>
+
+        <div class="spinner" id="spinner"></div>
+
+        <div class="error" id="error"></div>
+
+        <div class="results" id="results">
+            <div class="result-row">
+                <span class="result-label">Download</span>
+                <span class="result-value speed" id="download">-- Mbps</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Upload</span>
+                <span class="result-value speed" id="upload">-- Mbps</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Ping</span>
+                <span class="result-value" id="ping">-- ms</span>
+            </div>
+            <div class="server-info" id="serverInfo"></div>
+            <div class="result-link" id="resultLink">
+                <a href="#" target="_blank" id="resultUrl">View Full Results</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function runSpeedTest() {
+            const btn = document.getElementById('runTest');
+            const spinner = document.getElementById('spinner');
+            const results = document.getElementById('results');
+            const error = document.getElementById('error');
+            const resultLink = document.getElementById('resultLink');
+
+            // Reset UI
+            btn.disabled = true;
+            btn.textContent = 'Testing...';
+            spinner.style.display = 'block';
+            results.style.display = 'none';
+            error.style.display = 'none';
+            resultLink.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/speedtest', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    error.textContent = data.message;
+                    error.style.display = 'block';
+                } else {
+                    document.getElementById('download').textContent = data.download + ' Mbps';
+                    document.getElementById('upload').textContent = data.upload + ' Mbps';
+                    document.getElementById('ping').textContent = data.ping + ' ms';
+                    document.getElementById('serverInfo').textContent =
+                        'Server: ' + data.server.name + ', ' + data.server.location;
+                    results.style.display = 'block';
+
+                    if (data.result_url) {
+                        document.getElementById('resultUrl').href = data.result_url;
+                        resultLink.style.display = 'block';
+                    }
+                }
+            } catch (err) {
+                error.textContent = 'Failed to run speed test. Please try again.';
+                error.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Run Speed Test';
+                spinner.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
