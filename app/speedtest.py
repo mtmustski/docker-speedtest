@@ -24,7 +24,7 @@ def run_speedtest():
 
     try:
         result = subprocess.run(
-            ["speedtest", "--format=json", "--accept-license"],
+            ["speedtest", "--format=json", "--accept-license", "--accept-gdpr"],
             capture_output=True,
             text=True,
             timeout=120
